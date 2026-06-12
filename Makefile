@@ -1,3 +1,5 @@
+#boilerplate for some standard project structure (idk how makefiles works properly)
+
 CC = gcc
 CFLAGS = -Wall -Wextra -I./include
 
