@@ -1,10 +1,10 @@
-#include <arpa/inet.h>
 #include <pthread.h>
 #include "request.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "response.h"
 
 void* handlerequest(void* arg){
 
@@ -25,6 +25,7 @@ void* handlerequest(void* arg){
     printf("%s", rdata);
 
     //TODO: send back some stuff
+    parserequest(clientfd, rdata);
     
     free(rdata);
     close(clientfd);
@@ -34,14 +35,12 @@ void* handlerequest(void* arg){
 
 char* retrievedata(int fd){
     char *data = NULL;
-
-    char *buff = malloc(RECV_BUFFSIZE);
-
+    char *buff = malloc(DEFAULT_BUFFSIZE);
     int totalbytesrecieved = 0;
     
     while (1)
     {        
-        ssize_t recieved_bytes = recv(fd, buff, RECV_BUFFSIZE, 0);
+        ssize_t recieved_bytes = recv(fd, buff, DEFAULT_BUFFSIZE, 0);
         
         if (recieved_bytes <= 0) {
             break; 

@@ -2,7 +2,7 @@
 #define REQUEST_H
 #include <arpa/inet.h>
 
-#define RECV_BUFFSIZE 4096
+#define DEFAULT_BUFFSIZE 4096
 
 typedef struct {
     int clientfd;
