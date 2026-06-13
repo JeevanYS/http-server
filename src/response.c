@@ -5,34 +5,47 @@
 #include <stdio.h>
 #include <string.h>
 
-
 void parserequest(int clientfd , char *requestdata){
-    //send request ok + header
-    
+    char *path = parsepath(requestdata);
+    if (path == NULL) {
+        printf("Path nnot defined???");
+        return;
+    }
+    int pathsize = strlen(path);
+    char *formatedpath = malloc(pathsize+13); 
 
 
-    //send body
-    sendfilestream(clientfd, parsepath(requestdata));
-
-}
-
-// TODO: well make this thing work
-void sendfilestream(int fd, char *path){
-    char formatedpath[strlen(path)+13]; 
     if(strcmp(path, "/") == 0){
         strcpy(formatedpath, "./index.html");
     }
+    else
+    if(strchr(path, '.')){
+        snprintf(formatedpath, pathsize+2, ".%s", path);
+    }
     else{
-        snprintf(formatedpath, sizeof(formatedpath), ".%s/index.html", path);
+        snprintf(formatedpath, pathsize+13, ".%s/index.html", path);
     }
     printf("Formated Path: %s\n", formatedpath);
+    //send body
+    sendfilestream(clientfd, formatedpath);
+    
+    free(formatedpath);
+    free(path);
+}
+
+// TODO: well make this thing work
+void sendfilestream(int fd, char *formatedpath){
+
     
     FILE *file;
     file = fopen(formatedpath, "r"); 
     
     if(file){
-        char code[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
-        send(fd, code, sizeof(code), 0);
+        char *filetype = strrchr(formatedpath, '.') + 1;
+        char responseheader[256];
+        int size = sprintf(responseheader, "HTTP/1.1 200 OK\r\nContent-Type: text/%s\r\n\r\n", filetype);
+        send(fd, responseheader, size, 0);
+        
         
         fseek(file, 0, SEEK_END);
         int filesize = ftell(file);
@@ -46,11 +59,10 @@ void sendfilestream(int fd, char *path){
         fclose(file);
     }
     else{
-        char code[] = "HTTP/1.1 404\r\n\r\n <h1>404 Page Not Found!!!</h1>";
+        char code[] = "HTTP/1.1 404\r\nContent-Type: text/html\r\n\r\n <h1>404 Page Not Found!!!</h1>";
         send(fd, code, sizeof(code), 0);
     }
     
-    free(path);
 }
 
 char* parsepath(char *requestdata){
